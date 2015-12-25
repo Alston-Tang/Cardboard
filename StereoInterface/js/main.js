@@ -11,9 +11,9 @@ var oj = new OrientationJudge({debug: document.querySelector("#orientation")});
 
 
 
-menu.addBoard(new Board("test", "#ff0000"));
-menu.addBoard(new Board("test2", "#00ff00"));
-menu.addBoard(new Board("test3", "#0000ff"));
+menu.addBoard(new Board("test", {color:"#ffffff"}, {texture: "img/board1.jpg"}));
+menu.addBoard(new Board("test2", {color: "#00ff00"}, {color: "#00ff00"}));
+menu.addBoard(new Board("test3", {color: "#0000ff"}, {color: "#0000ff"}));
 stage.addMenu("main", menu);
 stage.switchMenu("main");
 menu.genScene();

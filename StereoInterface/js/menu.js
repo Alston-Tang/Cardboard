@@ -180,19 +180,33 @@ Menu.prototype.genScene = function(){
 };
 
 
-var Board = function(title, color){
+var Board = function(title, textObj, boardObj){
+    if (!textObj) textObj = {};
+    if (!boardObj) boardObj = {};
+    this.text = {};
+    this.board = {};
+    //Color
+    this.text.color = textObj.color ? textObj.color : "#ffffff";
+    this.board.color = boardObj.color ? textObj.color : "#ffffff";
+    //Texture
+    this.text.texture = textObj.texture ? new THREE.ImageUtils.loadTexture(textObj.texture) : null;
+    this.board.texture = boardObj.texture ? new THREE.ImageUtils.loadTexture(boardObj.texture) : null;
+
     this.parent = null;
     this.title = title;
-    this.color = color;
     this.distancePercent = 100;
     this.pos = {x: null, z: null};
     this.th = {};
     this.th.boardGeometry = new THREE.BoxGeometry(Board.prototype.width, Board.prototype.height, Board.prototype.thickness);
-    this.th.boardMaterial = new THREE.MeshLambertMaterial( { color: color} );
-    this.th.textGeometry = new THREE.TextGeometry(title, {font: 'helvetiker'});
-    this.th.textMaterial = this.th.boardMaterial;
+    this.th.boardMaterial = new THREE.MeshLambertMaterial( {map: this.board.texture, color: this.board.color} );
+    this.th.textGeometry = new THREE.TextGeometry(this.title, {font: 'helvetiker'});
+    this.th.textMaterial = new THREE.MeshLambertMaterial({map: this.text.texture, color: this.text.color});
     this.th.boardMesh = new THREE.Mesh(this.th.boardGeometry, this.th.boardMaterial);
     this.th.textMesh = new THREE.Mesh(this.th.textGeometry, this.th.textMaterial);
+
+    this.th.textGeometry.computeBoundingBox();
+    var textBox = this.th.textGeometry.boundingBox;
+    this.th.textMesh.position.x = -(textBox.max.x - textBox.min.x) / 2;
 
     this.th.group = new THREE.Group();
     this.th.group.add(this.th.boardMesh);
