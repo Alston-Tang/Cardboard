@@ -54,6 +54,33 @@ Eye.prototype.update = function(oj){
     this.th.camera.rotation.x = xRot;
 };
 
+Light = function(type, color){
+    this.th = {};
+    this.lightId = null;
+    this.type = type;
+    if (type == "ambient"){
+        this.th.light = new THREE.AmbientLight(color);
+    }
+    else if (type == "spot"){
+        this.th.light = new THREE.SpotLight(color);
+        this.th.light.position.set(0, 0, 0);
+        this.th.light.target.position.set(0, 0, -2000);
+        this.th.light.target.updateMatrixWorld();
+    }
+    else throw "Unsupported light type";
+};
+
+Light.prototype.update = function(oj){
+    switch (this.type){
+        case "spot":
+            var targetPos = rToP(oj.getYAxisRotation(), 2000);
+            this.th.light.target.position.x = targetPos.x;
+            this.th.light.target.position.z = targetPos.z;
+            this.th.light.target.updateMatrixWorld();
+            break;
+    }
+};
+
 var Stage = function(obj){
     if (!obj){
         obj = {};
@@ -63,14 +90,22 @@ var Stage = function(obj){
     this.activeMenu = null;
     this.staredObj = null;
     this.staredObjTime = null;
-    //Create Light
-    this.th = {};
-    this.th.light = new THREE.AmbientLight(0xffffff);
+    this.lights = [];
+
     //Create Eyes
     this.eyes = [];
     this.eyes.push(new Eye("left"));
     this.eyes.push(new Eye("right"));
     this.menus = {};
+};
+
+Stage.prototype.addLight = function(light){
+    light.lightId = this.lights.length;
+    this.lights.push(light);
+    for (var i = 0; i < this.menus.length; i++){
+        var menu = this.menus[i];
+        menu.th.scene.add(light);
+    }
 };
 
 Stage.prototype.addMenu = function(menuName, menu){
@@ -79,7 +114,9 @@ Stage.prototype.addMenu = function(menuName, menu){
     // Create Scene For Menu
     var scene = new THREE.Scene();
     // Add light
-    scene.add(this.th.light);
+    for (var i = 0; i < this.lights.length; i++){
+        scene.add(this.lights[i].th.light);
+    }
 
     menu.th.scene = scene;
 };
@@ -120,6 +157,17 @@ Stage.prototype.getStaredObj = function(){
         this.debug.innerHTML = this.debugInf();
     }
     return {obj: null, lastTime: null, noLonger: lastObj};
+};
+
+Stage.prototype.update = function(oj){
+    //Update Light
+    for (var i = 0; i < this.lights.length; i++){
+        this.lights[i].update(oj);
+    }
+    //Update Camera
+    for (i = 0; i < this.eyes.length; i++){
+        this.eyes[i].update(oj);
+    }
 };
 
 Stage.prototype.debugInf = function(){
@@ -199,8 +247,10 @@ var Board = function(title, textObj, boardObj){
     this.th = {};
     this.th.boardGeometry = new THREE.BoxGeometry(Board.prototype.width, Board.prototype.height, Board.prototype.thickness);
     this.th.boardMaterial = new THREE.MeshLambertMaterial( {map: this.board.texture, color: this.board.color} );
+    this.th.boardMaterial.side = THREE.DoubleSide;
     this.th.textGeometry = new THREE.TextGeometry(this.title, {font: 'helvetiker'});
     this.th.textMaterial = new THREE.MeshLambertMaterial({map: this.text.texture, color: this.text.color});
+    this.th.textMaterial.side = THREE.DoubleSide;
     this.th.boardMesh = new THREE.Mesh(this.th.boardGeometry, this.th.boardMaterial);
     this.th.textMesh = new THREE.Mesh(this.th.textGeometry, this.th.textMaterial);
 

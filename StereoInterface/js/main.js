@@ -3,7 +3,7 @@
  */
 
 var stage = new Stage({debug: document.querySelector("#stared")});
-var menu = new Menu(2000);
+var mainMenu = new Menu(2000);
 var windowH = null;
 var windowW = null;
 var renderer;
@@ -11,12 +11,16 @@ var oj = new OrientationJudge({debug: document.querySelector("#orientation")});
 
 
 
-menu.addBoard(new Board("test", {color:"#ffffff"}, {texture: "img/board1.jpg"}));
-menu.addBoard(new Board("test2", {color: "#00ff00"}, {color: "#00ff00"}));
-menu.addBoard(new Board("test3", {color: "#0000ff"}, {color: "#0000ff"}));
-stage.addMenu("main", menu);
+
+
+mainMenu.addBoard(new Board("Stereo Image", {color:"#ffffff"}, {texture: "img/board1.jpg"}));
+mainMenu.addBoard(new Board("test2", {color: "#00ff00"}, {color: "#00ff00"}));
+mainMenu.addBoard(new Board("test3", {color: "#0000ff"}, {color: "#0000ff"}));
+stage.addLight(new Light("ambient", 0x333333));
+stage.addLight(new Light("spot", 0xffffff));
+stage.addMenu("main", mainMenu);
 stage.switchMenu("main");
-menu.genScene();
+mainMenu.genScene();
 
 
 var init = function(){
@@ -32,6 +36,8 @@ var init = function(){
 };
 
 var mainLoop = function(){
+    //Get Menu
+    var menu = stage.activeMenu;
     //Get Scene
     var scene = menu.th.scene;
     //Detect stared
@@ -49,11 +55,12 @@ var mainLoop = function(){
     if (staredObject.noLonger){
         staredObject.noLonger.setDistance(100);
     }
+    //Update Scene Position
+    stage.update(oj);
     //Draw scene for each camera
     var eyes = stage.eyes;
     for (var i = 0; i < eyes.length; i++) {
         var eye = eyes[i];
-        eye.update(oj);
         var camera = eye.th.camera;
         var left = Math.floor(windowW * eye.l);
         var bottom = Math.floor(windowH * eye.b);
