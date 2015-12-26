@@ -16,7 +16,7 @@ var OrientationJudge = function(obj){
     this.a = null;
     this.b = null;
     this.c = null;
-    this.initA = null;
+    this.initA = 0;
     this.initB = null;
     this.initC = null;
 };
@@ -30,8 +30,7 @@ OrientationJudge.prototype.registerEvent = function(){
 
 
 OrientationJudge.prototype.update = function(a, b, c){
-    if (!isNumber(this.initA)){
-        this.initA = a;
+    if (!isNumber(this.initB)){
         this.initB = b;
         this.initC = c;
     }
@@ -51,7 +50,7 @@ OrientationJudge.prototype.yRotationReverse = function(){
 };
 
 OrientationJudge.prototype.getYAxisRotation = function(){
-    var rv = this.a;
+    var rv = this.a - this.initA;
     if (this.yRotationReverse()){
         rv += 180;
     }
@@ -67,6 +66,18 @@ OrientationJudge.prototype.getXAxisRotation = function(){
         rv = rv - 180;
     }
     return rv * Math.PI / 180;
+};
+
+OrientationJudge.prototype.resetInit = function(){
+    if (this.a) {
+        this.initA = this.a;
+    }
+    if (this.b){
+        this.initB = this.b;
+    }
+    if (this.c) {
+        this.initC = this.c;
+    }
 };
 
 OrientationJudge.prototype.debugInf = function(){

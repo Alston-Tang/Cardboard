@@ -8,9 +8,27 @@
             margin: 0;
             padding: 0;
         }
+        .left{
+            position: fixed; left: 0; width: 50%; height: 100%; margin: 0; padding: 0;
+        }
+        .right{
+            position: fixed; left: 50%; width: 50%; height: 100%; margin: 0; padding: 0;
+        }
     </style>
 </head>
 <body>
+<div id="video" style="display: none" simple=1>
+    <video id="video-l" class="left">
+        <source>
+    </video>
+    <video id="video-r" class="right">
+        <source>
+    </video>
+</div>
+<div id="image" style="display: none" simple=1>
+    <img id="image-l" class="left">
+    <img id="image-r" class="right">
+</div>
 <div id="debug" style="position: fixed; width: 100%; height: 200px; color: white">
     <span id="orientation"></span>
     <br>
@@ -24,6 +42,7 @@
 <script src="js/lib/helvetiker_regular.typeface.js"></script>
 
 <script src="js/orientation.js"></script>
+<script src="js/frame.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/main.js"></script>
 

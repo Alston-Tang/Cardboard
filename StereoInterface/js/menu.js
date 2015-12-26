@@ -58,6 +58,7 @@ Light = function(type, color){
     this.th = {};
     this.lightId = null;
     this.type = type;
+    this.color = color;
     if (type == "ambient"){
         this.th.light = new THREE.AmbientLight(color);
     }
@@ -82,21 +83,38 @@ Light.prototype.update = function(oj){
 };
 
 var Stage = function(obj){
+    Frame.call(this);
     if (!obj){
         obj = {};
     }
-    this.parent = null;
+    this.continueLoop = false;
     this.debug = obj.debug ? obj.debug : false;
     this.activeMenu = null;
     this.staredObj = null;
     this.staredObjTime = null;
     this.lights = [];
+    this.backStack = [];
 
     //Create Eyes
     this.eyes = [];
     this.eyes.push(new Eye("left"));
     this.eyes.push(new Eye("right"));
     this.menus = {};
+
+    //Initialize Renderer
+    this.init();
+};
+
+Stage.prototype = Frame.prototype;
+
+Stage.prototype.init = function(){
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(windowW, windowH);
+    renderer.setClearColor(0x000000, 1);
+    this.renderer = renderer;
+    this.dom = this.renderer.domElement;
+    this.dom.style.display = "none";
+    document.body.appendChild(renderer.domElement);
 };
 
 Stage.prototype.addLight = function(light){
@@ -115,14 +133,33 @@ Stage.prototype.addMenu = function(menuName, menu){
     var scene = new THREE.Scene();
     // Add light
     for (var i = 0; i < this.lights.length; i++){
-        scene.add(this.lights[i].th.light);
+        var light = this.lights[i];
+        var cloneLight = new Light(light.type, light.color);
+        scene.add(cloneLight.th.light);
+        menu.lights.push(cloneLight);
     }
-
     menu.th.scene = scene;
 };
 
-Stage.prototype.switchMenu = function(menuName){
-    this.activeMenu = this.menus[menuName];
+Stage.prototype.switchMenu = function(menu){
+    if (menu instanceof Board){
+        menu = menu.parent;
+    }
+    if (!(menu instanceof Menu)){
+        menu = this.menus[menu];
+    }
+    if (!menu){
+        throw "Invalid Menu";
+    }
+    this.activeMenu = menu;
+    oj.resetInit();
+};
+
+Stage.prototype.genScene = function(){
+    for (var menuId in this.menus){
+        //noinspection JSUnfilteredForInLoop
+        this.menus[menuId].genScene();
+    }
 };
 Stage.prototype.getStaredObj = function(){
     var menu = this.activeMenu;
@@ -160,14 +197,27 @@ Stage.prototype.getStaredObj = function(){
 };
 
 Stage.prototype.update = function(oj){
-    //Update Light
-    for (var i = 0; i < this.lights.length; i++){
-        this.lights[i].update(oj);
-    }
     //Update Camera
-    for (i = 0; i < this.eyes.length; i++){
+    for (var i = 0; i < this.eyes.length; i++){
         this.eyes[i].update(oj);
     }
+    this.activeMenu.update(oj);
+};
+
+Stage.prototype.on = function(menu){
+    this.switchMenu(menu);
+    this.dom.style.display = "inline";
+    this.continueLoop = true;
+    mainLoop();
+};
+
+Stage.prototype.off = function(){
+    this.continueLoop = false;
+    this.dom.style.display = "none";
+};
+
+Stage.prototype.switch = function(menu){
+    this.switchMenu(menu);
 };
 
 Stage.prototype.debugInf = function(){
@@ -183,6 +233,7 @@ var Menu = function(radius){
     this.parent = null;
     this.radius = radius;
     this.boards = [];
+    this.lights = [];
     this.th = {};
 };
 
@@ -192,6 +243,13 @@ Menu.prototype.addBoard = function(board){
     this.boards.push(board);
     //Update Position
     this.calcBoardPos();
+};
+
+Menu.prototype.update = function(oj){
+    //Update light direction
+    for (var i = 0; i < this.lights.length; i++){
+        this.lights[i].update(oj);
+    }
 };
 
 Menu.prototype.calcBoardPos = function(){
@@ -228,11 +286,15 @@ Menu.prototype.genScene = function(){
 };
 
 
-var Board = function(title, textObj, boardObj){
+var Board = function(title, textObj, boardObj, ext){
     if (!textObj) textObj = {};
     if (!boardObj) boardObj = {};
+    if (!ext) ext = {};
     this.text = {};
     this.board = {};
+    this.link = null;
+    //Custom content information
+    this.contentInf = ext.contentInf ? ext.contentInf : null;
     //Color
     this.text.color = textObj.color ? textObj.color : "#ffffff";
     this.board.color = boardObj.color ? textObj.color : "#ffffff";
@@ -247,13 +309,11 @@ var Board = function(title, textObj, boardObj){
     this.th = {};
     this.th.boardGeometry = new THREE.BoxGeometry(Board.prototype.width, Board.prototype.height, Board.prototype.thickness);
     this.th.boardMaterial = new THREE.MeshLambertMaterial( {map: this.board.texture, color: this.board.color} );
-    this.th.boardMaterial.side = THREE.DoubleSide;
     this.th.textGeometry = new THREE.TextGeometry(this.title, {font: 'helvetiker'});
     this.th.textMaterial = new THREE.MeshLambertMaterial({map: this.text.texture, color: this.text.color});
-    this.th.textMaterial.side = THREE.DoubleSide;
     this.th.boardMesh = new THREE.Mesh(this.th.boardGeometry, this.th.boardMaterial);
     this.th.textMesh = new THREE.Mesh(this.th.textGeometry, this.th.textMaterial);
-
+    //Shift Text to Center of Board
     this.th.textGeometry.computeBoundingBox();
     var textBox = this.th.textGeometry.boundingBox;
     this.th.textMesh.position.x = -(textBox.max.x - textBox.min.x) / 2;
