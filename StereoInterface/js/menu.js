@@ -213,6 +213,8 @@ Stage.prototype.on = function(menu){
 
 Stage.prototype.off = function(){
     this.continueLoop = false;
+    this.staredObj = null;
+    this.staredObjTime = null;
     this.dom.style.display = "none";
 };
 
@@ -328,7 +330,6 @@ Board.prototype.isStared = function(xRotation, yRotation){
         return false;
     }
     return !(yRotation < this.rr || yRotation > this.rl);
-
 };
 
 Board.prototype.setDistance = function(percent){

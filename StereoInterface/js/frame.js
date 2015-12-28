@@ -4,6 +4,7 @@
 
 
 var FrameSwitcher = function(){
+    var cur = this;
     this.activeFrame = null;
     this.frames = {};
     this.backStack = [];

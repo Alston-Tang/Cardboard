@@ -14,20 +14,50 @@
         .right{
             position: fixed; left: 50%; width: 50%; height: 100%; margin: 0; padding: 0;
         }
+        .full{
+            position: fixed; left: 0; width: 100%; height: 100%; margin: 0; padding: 0;
+        }
+        .button {
+            background-color:#44c767;
+            -moz-border-radius:28px;
+            -webkit-border-radius:28px;
+            border-radius:28px;
+            border:1px solid #18ab29;
+            display:inline-block;
+            cursor:pointer;
+            color:#ffffff;
+            font-family:Arial,serif;
+            font-size:17px;
+            padding:16px 31px;
+            text-decoration:none;
+            text-shadow:0 1px 0 #2f6627;
+        }
+        .button:hover {
+            background-color:#5cbf2a;
+        }
+        .button:active {
+            position:relative;
+            top:1px;
+        }
     </style>
 </head>
 <body>
-<div id="video" style="display: none" simple=1>
-    <video id="video-l" class="left">
-        <source>
-    </video>
-    <video id="video-r" class="right">
-        <source>
+<div id="welcome" style="display: none; position: fixed; left: 50%; top: 50%">
+    <button class="button" onclick="initVideoPlayer();">Launch</button>
+</div>
+<div id="video" style="display: none">
+    <video id="video-l" class="full">
+        <source src="video/load.mp4">
     </video>
 </div>
-<div id="image" style="display: none" simple=1>
+<div id="image" style="display: none" simple="1">
     <img id="image-l" class="left">
     <img id="image-r" class="right">
+</div>
+<div id="panorama" style="display: none" simple="1">
+    <img style="display: none">
+    <canvas class="left" width="960" height="1080"></canvas>
+    <canvas class="right" width="960" height="1080"></canvas>
 </div>
 <div id="debug" style="position: fixed; width: 100%; height: 200px; color: white">
     <span id="orientation"></span>
